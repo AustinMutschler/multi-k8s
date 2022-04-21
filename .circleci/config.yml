@@ -17,7 +17,7 @@ jobs:
       - run:
           name: Build Client Image
           command: |
-            docker build -t austinmutschler/multi-client-test -f ./client/Dockerfile .
+            docker build -t austinmutschler/multi-client-test -f ./client/Dockerfile ./client
       # Run Tests
       - run:
           name: Run Client Tests
