@@ -9,6 +9,9 @@ jobs:
     resource_class: small
     steps:
       - checkout
+      - setup_remote_docker:
+          version: 20.10.12
+          docker_layer_caching: false
       - gcp-gke/install
       # Build Image and Test
       - run:
@@ -27,6 +30,9 @@ jobs:
     resource_class: small
     steps:
       - checkout
+      - setup_remote_docker:
+          version: 20.10.12
+          docker_layer_caching: false
       - gcp-gke/install
       - gcp-gke/update-kubeconfig-with-credentials:
           cluster: multi-cluster
