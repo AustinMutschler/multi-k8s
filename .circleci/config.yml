@@ -28,11 +28,11 @@ jobs:
       - gcp-gke/install
       - gcp-gke/update-kubeconfig-with-credentials:
           cluster: multi-cluster
-      - gcp-gke/rollout-image:
-          cluster: multi-cluster
-          container: 
-          deployment: 
-          image: 
+      #- gcp-gke/rollout-image:
+      #    cluster: multi-cluster
+      #    container: 
+      #    deployment: 
+      #    image: 
 
       - run:
           name: Rollout K8s
