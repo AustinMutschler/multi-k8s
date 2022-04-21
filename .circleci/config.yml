@@ -46,14 +46,14 @@ workflows:
       - hold:
           type: approval
           requires:
-            - test
+            - test_client
           filters:
             branches:
               only:
                 - master
       - deploy_production:
           requires:
-            - test
+            - test_client
             - hold
           filters:
             branches:
