@@ -1,0 +1,61 @@
+version: 2.1
+orbs:
+  gcp-gke: circleci/gcp-gke@0.1.0
+jobs:
+  build-and-push-docker-images:
+    description: Build and Push Docker Images to Google Artifact Registry
+    machine: true
+    steps:
+      - checkout
+      # TODO: Install Docker? Build Docker Image and Push
+      - run:
+          name: Build Client Docker Image
+          command: docker build -t austinmutschler/multi-client:$CIRCLE_TAG -f ./client/Dockefile .
+      - run:
+          name: Build Server Docker Image
+          command: docker build -t austinmutschler/multi-server:$CIRCLE_TAG -f ./server/Dockefile .
+      - run:
+          name: Build Worker Docker Image
+          command: docker build -t austinmutschler/multi-worker:$CIRCLE_TAG -f ./worker/Dockefile .
+      - gcr/push-image:
+          image: austinmutschler/multi-client
+          tag: $CIRCLE_TAG
+      - gcr/push-image:
+          image: austinmutschler/multi-server
+          tag: $CIRCLE_TAG
+      - gcr/push-image:
+          image: austinmutschler/multi-worker
+          tag: $CIRCLE_TAG
+
+  deploy:
+    description: Deploy application to Google Kubernetes Engine
+    machine: true
+    steps:
+      - gcp-gke/install
+      - gcp-gke/init
+      - gcp-gke/rollout-image:
+          deployment: circle-ci-cluster
+          container: dominic-backend
+          image: gcr.io/circle-ci-demo/circle-gke:v2
+workflows:
+  build_update_deploy:
+    jobs:
+      - hold:
+        type: approval
+
+      - build-and-push-docker-images:
+          requires:
+            - hold
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: ^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$
+
+      - deploy:
+          requires:
+            - hold
+            - build-and-push-docker-images
+          filters:
+            tags:
+              only: ^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$
